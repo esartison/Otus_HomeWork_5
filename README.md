@@ -40,34 +40,16 @@ pgnode1: создание бэкап директорию
 >sudo chown -R postgres:postgres /backup
 >sudo chmod -R 755 /backup
 
-pgnode1: выполнить полный бэкап
-> postgres@pgnode1:   pg_basebackup -v -D /backup/full
-![image](https://github.com/user-attachments/assets/85a95435-70d3-48c2-92c2-73e7ee32dad8
-![image](https://github.com/user-attachments/assets/a4177221-2112-4408-9079-1fa60268acd8)
-
 pgnode1: создание тестовой таблицы
 >create table demo000001 (c1 text);
 >insert into demo00001 values ('Проверка инкрементального резервного копирования');
 
-pgnode1: создать директории для инкрементальных бэкапов
-sudo mkdir -p /backup/{incr_monday,incr_tuesday}
-sudo chown -R postgres:postgres /backup
-sudo chmod -R 755 /backup
 
 
-pgnode1: сделать инкременатльный бэкап
->pg_basebackup --incremental=/backup/full/backup_manifest -D /backup/incr_monday/
-![image](https://github.com/user-attachments/assets/e8afb94a-eb5e-4c7c-a638-49102aaa6464)
-
-
-pgnode1: создание тестовой таблицы
->create table demo02 (c1 text);
->insert into demo02 values ('Проверка инкрементального резервного копирования');
-
-
-pgnode1: сделать инкременатльный бэкап
->pg_basebackup --incremental=/backup/full/backup_manifest -D /backup/incr_tuesday/
-![image](https://github.com/user-attachments/assets/e8afb94a-eb5e-4c7c-a638-49102aaa6464)
+pgnode1: выполнить полный бэкап
+> postgres@pgnode1:   pg_basebackup -v -D /backup/full
+![image](https://github.com/user-attachments/assets/85a95435-70d3-48c2-92c2-73e7ee32dad8
+![image](https://github.com/user-attachments/assets/a4177221-2112-4408-9079-1fa60268acd8)
 
 
 
@@ -88,3 +70,29 @@ pgnode1: сделать инкременатльный бэкап
 
 
 ## (4) Дополнительно: Снимите бэкап под нагрузкой с реплики.
+pgnode1: создание тестовой таблицы
+>create table test_replica_backup (c1 text);
+>insert into demo02 values ('Проверка backup-а с реплики');
+![image](https://github.com/user-attachments/assets/edbfadf3-6db3-4e8c-9f41-a835eee494b9)
+
+запустить pgbench read-only, чтобы дать нагрузку
+pgnode1:pgbench -U postgres -i -s 950 postgres
+![image](https://github.com/user-attachments/assets/d61d0fb1-25d3-446f-bd5a-534c892484e3)
+
+pgnode2:pgbench -U postgres -c 50 -j 2 -P 60 -T 600 -S postgres
+![image](https://github.com/user-attachments/assets/ae1279cc-3880-4d79-9bf6-638805598726)
+
+
+
+pgnode2: во время выполнения Pgbench сделать бэкап в другой сессии
+> pg_basebackup -v -D /backup/full_replica
+
+во время выполнения бэкапа с реплики, нужно сделать ручной checkpoint
+![image](https://github.com/user-attachments/assets/d94563e7-349b-4664-b97f-743184eda811)
+
+Бэкап завершился успешно
+![image](https://github.com/user-attachments/assets/f5f038b0-b98c-4dd6-b0d9-66f83bd698ef)
+
+во время бэкапа нагрузка на сервере реплики была значительной
+![image](https://github.com/user-attachments/assets/981f4cce-077b-4170-acd3-7148d656e0d6)
+
