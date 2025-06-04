@@ -62,6 +62,7 @@ postgres@pgtest01:~$ diff  /etc/postgresql/17/main/postgresql.conf /etc/postgres
 
 проверка что wal идут в /backup/archives/
 >SELECT pg_switch_wal();
+
 ![image](https://github.com/user-attachments/assets/e0f07d9e-2bca-478e-9986-5b47e459964c)
 
 
