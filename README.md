@@ -27,6 +27,7 @@
 
 
 pgtest01: установка Postgres
+```
 sudo apt install curl ca-certificates
 sudo install -d /usr/share/postgresql-common/pgdg
 sudo curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc --fail https://www.postgresql.org/media/keys/ACCC4CF8.asc
@@ -34,6 +35,7 @@ sudo sh -c 'echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresq
 sudo sh -c 'echo "deb [arch=amd64 signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt noble-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
 sudo apt update
 sudo apt install postgresql-17 postgresql-client-17
+```
 ![image](https://github.com/user-attachments/assets/184e3fcc-9a71-49d4-a251-cfaffc5ca2a3)
 
 pgtest01: примонтировать shared backup директорию
