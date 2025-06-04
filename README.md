@@ -60,42 +60,72 @@ postgres@pgtest01:~$ diff  /etc/postgresql/17/main/postgresql.conf /etc/postgres
 >                               # placeholders: %p = path of file to archive
 ```
 
-проверка что wal идут в /backup/archives/
->SELECT pg_switch_wal();
-
-![image](https://github.com/user-attachments/assets/e0f07d9e-2bca-478e-9986-5b47e459964c)
-
-
-
 ## (1) Настройте бэкапы PostgreSQL с использованием WAL-G, pg_probackup или любого другого аналогичного ПО для базы данных "Лояльность оптовиков".
 
 Делаем инкрементальный бэкап средствами pg_basebackup
 
-pgnode1: проверка директории summaries - пустая ожидаемо
-![image](https://github.com/user-attachments/assets/8ec5aea8-0219-4e54-b170-bbf5db216c00)
+pgtest01: проверка директории summaries - пустая ожидаемо
+> ls /var/lib/postgresql/17/main/pg_wal/summaries
+![image](https://github.com/user-attachments/assets/b1df11ca-c1c1-40f1-8ca0-58b93ab2c547)
 
-pgnode1: выставить summarize_wal = on
-![image](https://github.com/user-attachments/assets/28ae7ad9-7bb2-46f6-912c-5b9db491a3f1)
-![image](https://github.com/user-attachments/assets/1cfcea80-b243-47c8-9cc4-c6901465953b)
-
-pgnode1: проверить что файлы стали появляться в директории summaries
-![image](https://github.com/user-attachments/assets/85f5d733-02bc-499b-a0fc-3be8feac77e4)
-
-pgnode1: создание бэкап директорию
->sudo mkdir -p /backup/full
->sudo chown -R postgres:postgres /backup
->sudo chmod -R 755 /backup
-
-pgnode1: создание тестовой таблицы
->create table demo000001 (c1 text);
->insert into demo00001 values ('Проверка инкрементального резервного копирования');
+pgtest01: выставить summarize_wal = on
+![image](https://github.com/user-attachments/assets/57f1cf64-0fbc-41bf-b1d6-ab053bfdf4f7)
 
 
+pgtest01: проверить что файлы стали появляться в директории summaries
+> ls /var/lib/postgresql/17/main/pg_wal/summaries
 
-pgnode1: выполнить полный бэкап
-> postgres@pgnode1:   pg_basebackup -v -D /backup/full
-![image](https://github.com/user-attachments/assets/85a95435-70d3-48c2-92c2-73e7ee32dad8
-![image](https://github.com/user-attachments/assets/a4177221-2112-4408-9079-1fa60268acd8)
+pgtest01: создание бэкап директорию
+>mkdir -p /backup/full
+>chown -R postgres:postgres /backup
+>chmod -R 755 /backup
+
+
+pgtest01: выполнить полный бэкап
+> postgres@pgtest01:   pg_basebackup -v -D /backup/full
+```
+postgres@pgtest01:~/17/main/pg_wal/summaries$ pg_basebackup -v -D /backup/full
+pg_basebackup: initiating base backup, waiting for checkpoint to complete
+pg_basebackup: checkpoint completed
+pg_basebackup: write-ahead log start point: 0/5000028 on timeline 1
+pg_basebackup: starting background WAL receiver
+pg_basebackup: created temporary replication slot "pg_basebackup_4791"
+pg_basebackup: write-ahead log end point: 0/5000158
+pg_basebackup: waiting for background process to finish streaming ...
+pg_basebackup: syncing data to disk ...
+pg_basebackup: renaming backup_manifest.tmp to backup_manifest
+pg_basebackup: base backup completed
+
+postgres@pgtest01:~/17/main/pg_wal/summaries$ du -sh  /backup/full
+39M     /backup/full
+```
+
+
+pgtest01: создание тестовой таблицы
+>create table demo01 (c1 text);
+>insert into demo01 values ('Проверка инкрементального резервного копирования');
+
+
+pgtest01:	создание папки для инкрементального резервного копирования
+```
+mkdir -p /backup/{incr_monday,incr_tuesday}
+chown -R postgres:postgres /backup
+chmod -R 755 /backup
+```
+
+pgtest01: выполнение инкрементального резервного копирования
+```
+sudo -u postgres pg_basebackup --incremental=/backup/full/backup_manifest -D /backup/incr_monday/
+
+insert into demo01 values ('Проверка инкрементального резервного копирования 2');
+
+sudo -u postgres pg_basebackup --incremental=/backup/incr_monday/backup_manifest -D /backup/incr_tuesday/
+
+root@pgtest01:/backup# du -sh /backup/incr*
+20M     /backup/incr_monday
+20M     /backup/incr_tuesday
+```
+
 
 
 
