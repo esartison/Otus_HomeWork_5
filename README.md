@@ -192,6 +192,7 @@ pgtest02: данные из лога
 
 
 ## (4) Дополнительно: Снимите бэкап под нагрузкой с реплики.
+
 pgnode1: создание тестовой таблицы
 >create table test_replica_backup (c1 text);
 >insert into demo02 values ('Проверка backup-а с реплики');
