@@ -166,15 +166,18 @@ pgtest02: примонтировать shared backup директорию
 
 
 pgtest02: Остановить кластер и очистить pg_data
+```
 sudo systemctl stop postgresql@17-main
 rm -rf /var/lib/postgresql/17/main/
-
+```
 
 pgtest02: восстановить данные из бэкапа и запустить кластер
+```
 cp -R /backup/comb /var/lib/postgresql/17/
 mv /var/lib/postgresql/17/comb /var/lib/postgresql/17/main
 chmod -R 750 /var/lib/postgresql/17/main/
 sudo systemctl start postgresql
+```
 
 pgtest02: данные из лога
 ![image](https://github.com/user-attachments/assets/b936d384-74e4-4a14-bd78-cc50b1c5b038)
