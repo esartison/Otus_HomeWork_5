@@ -203,6 +203,7 @@ pgtest02(replica):
 
 pgtest02(replica): во время выполнения Pgbench сделать бэкап в другой сессии
 > pg_basebackup -v -D /backup/full_replica
+
 во время выполнения бэкапа с реплики, нужно сделать ручной checkpoint
 
 Бэкап завершился успешно. 
