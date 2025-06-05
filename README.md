@@ -193,29 +193,16 @@ pgtest02: данные из лога
 
 ## (4) Дополнительно: Снимите бэкап под нагрузкой с реплики.
 
-pgnode1: создание тестовой таблицы
->create table test_replica_backup (c1 text);
->insert into demo02 values ('Проверка backup-а с реплики');
-![image](https://github.com/user-attachments/assets/edbfadf3-6db3-4e8c-9f41-a835eee494b9)
+запустить pgbench read-only, чтобы дать нагрузку. Так-как replica read-only - то нужно одновременно запустить pgbench и на мастере
 
-запустить pgbench read-only, чтобы дать нагрузку
-pgnode1:pgbench -U postgres -i -s 950 postgres
-![image](https://github.com/user-attachments/assets/d61d0fb1-25d3-446f-bd5a-534c892484e3)
+pgtest01(master):pgbench -U postgres -i -s 950 postgres
 
-pgnode2:pgbench -U postgres -c 50 -j 2 -P 60 -T 600 -S postgres
-![image](https://github.com/user-attachments/assets/ae1279cc-3880-4d79-9bf6-638805598726)
+pgtest02(replica):pgbench -U postgres -c 50 -j 2 -P 60 -T 600 -S postgres
 
-
-
-pgnode2: во время выполнения Pgbench сделать бэкап в другой сессии
+pgtest02(replica): во время выполнения Pgbench сделать бэкап в другой сессии
 > pg_basebackup -v -D /backup/full_replica
-
 во время выполнения бэкапа с реплики, нужно сделать ручной checkpoint
-![image](https://github.com/user-attachments/assets/d94563e7-349b-4664-b97f-743184eda811)
 
-Бэкап завершился успешно
-![image](https://github.com/user-attachments/assets/f5f038b0-b98c-4dd6-b0d9-66f83bd698ef)
+Бэкап завершился успешно. 
 
-во время бэкапа нагрузка на сервере реплики была значительной
-![image](https://github.com/user-attachments/assets/981f4cce-077b-4170-acd3-7148d656e0d6)
 
