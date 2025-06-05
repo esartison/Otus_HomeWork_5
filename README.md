@@ -195,9 +195,11 @@ pgtest02: данные из лога
 
 запустить pgbench read-only, чтобы дать нагрузку. Так-как replica read-only - то нужно одновременно запустить pgbench и на мастере
 
-pgtest01(master):pgbench -U postgres -i -s 950 postgres
+pgtest01(master):
+>pgbench -U postgres -i -s 950 postgres
 
-pgtest02(replica):pgbench -U postgres -c 50 -j 2 -P 60 -T 600 -S postgres
+pgtest02(replica):
+>pgbench -U postgres -c 50 -j 2 -P 60 -T 600 -S postgres
 
 pgtest02(replica): во время выполнения Pgbench сделать бэкап в другой сессии
 > pg_basebackup -v -D /backup/full_replica
