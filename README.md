@@ -127,22 +127,65 @@ root@pgtest01:/backup# du -sh /backup/incr*
 ```
 
 
+pgtest01:Создать комбинированную копию из full и инкрементальных бэкапов
+```
+root@pgtest01:~# mkdir -p /backup/comb
+root@pgtest01:~# chown -R postgres:postgres /backup/comb
+root@pgtest01:~# chmod -R 755 /backup/comb
+root@pgtest01:~#
+root@pgtest01:~#
+root@pgtest01:~# sudo -u postgres /usr/lib/postgresql/17/bin/pg_combinebackup -o /backup/comb /backup/full /backup/incr_monday /backup/incr_tuesday
+root@pgtest01:~# du -sh /backup/comb
+39M     /backup/comb
+```
+
+
 
 
 ## (2) Восстановите данные на другом кластере, чтобы убедиться, что бэкапы работают.
-Восстанавливать данные буду с Yandex Cloud в локальную виртуалку
+Восстанавливать данные буду с сервера pgtest01 на сервер pgtest02(обе в YC)
 
-(source)Где сделали бэкап в YC
-![image](https://github.com/user-attachments/assets/8c617ba8-8f71-43e0-b8e1-7dff701ebd48)
 
-(target)Целевой кластер для восстановления
->student:~$ sudo apt install postgresql-17
-![image](https://github.com/user-attachments/assets/9f85d6cc-b22b-41b4-9e89-c3ea95aaac08)
+pgtest02: установка Postgres
+```
+sudo apt install curl ca-certificates
+sudo install -d /usr/share/postgresql-common/pgdg
+sudo curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc --fail https://www.postgresql.org/media/keys/ACCC4CF8.asc
+sudo sh -c 'echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+sudo sh -c 'echo "deb [arch=amd64 signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt noble-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+sudo apt update
+sudo apt install postgresql-17 postgresql-client-17
+```
+![image](https://github.com/user-attachments/assets/76b00b3b-95a3-467b-970e-d4b735003f85)
 
+
+pgtest02: примонтировать shared backup директорию
+> mkdir /backup && mount -t virtiofs pgbackup /backup  && chown postgres:postgres /backup
+
+>mkdir /backup/archives_repl/
+
+
+pgtest02: Остановить кластер и очистить pg_data
+sudo systemctl stop postgresql@17-main
+rm -rf /var/lib/postgresql/17/main/
+
+
+pgtest02: восстановить данные из бэкапа и запустить кластер
+cp -R /backup/comb /var/lib/postgresql/17/
+mv /var/lib/postgresql/17/comb /var/lib/postgresql/17/main
+chmod -R 750 /var/lib/postgresql/17/main/
+sudo systemctl start postgresql
+
+pgtest02: данные из лога
+![image](https://github.com/user-attachments/assets/b936d384-74e4-4a14-bd78-cc50b1c5b038)
 
 
 
 ## (3) Проверьте, что данные восстановлены корректно.
+Данные были восстановлены успешно и есть информация после обоих инкрементальных бэкапов
+![image](https://github.com/user-attachments/assets/9f34ddb8-c6d6-4c37-91c1-e05a628fb756)
+Все прошло успешно.
+
 
 
 ## (4) Дополнительно: Снимите бэкап под нагрузкой с реплики.
